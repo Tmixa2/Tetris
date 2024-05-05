@@ -5,7 +5,7 @@ init()
 scr = display.set_mode((700, 500))
 game = True
 bg = transform.scale(image.load("fon.jpg"), (700, 500))
-sources = ["1x1red.jpg", "1x1blue.png", "1x1green.png"]
+sources = ["1x1red.jpg", "1x1blue.png", "1x1_green.png"]
 frame = time.Clock()
 speed_flag = 0
 global fallen
