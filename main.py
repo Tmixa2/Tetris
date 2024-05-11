@@ -5,31 +5,45 @@ init()
 scr = display.set_mode((700, 500))
 game = True
 bg = transform.scale(image.load("fon.jpg"), (700, 500))
-sources = ["1x1red.jpg", "1x1blue.png", "1x1_green.png"]
+sources = ["1x1blue.png"]#["1x1red.jpg", "1x1blue.png", "1x1_green.png"]
 frame = time.Clock()
 speed_flag = 0
 global fallen
 fallen = []
 def rect_collide(rect1, rect2):
-    if rect2.rect.right > rect1.rect.left and rect2.rect.left < rect1.rect.right and rect2.rect.bottom > rect1.rect.top and rect2.rect.top < rect1.rect.bottom:
+    if rect2.rect.right > rect1.rect.left and rect2.rect.left < rect1.rect.right and rect2.rect.bottom > rect1.rect.top and rect2.rect.top < rect1.rect.bottom or rect2.part_rect.right > rect1.rect.left and rect2.part_rect.left < rect1.rect.right and rect2.part_rect.bottom > rect1.rect.top and rect2.part_rect.top < rect1.rect.bottom or rect2.part_rect.right > rect1.part_rect.left and rect2.part_rect.left < rect1.part_rect.right and rect2.part_rect.bottom > rect1.part_rect.top and rect2.part_rect.top < rect1.part_rect.bottom or rect2.rect.right > rect1.part_rect.left and rect2.rect.left < rect1.part_rect.right and rect2.rect.bottom > rect1.part_rect.top and rect2.rect.top < rect1.part_rect.bottom:
         return True
 class gamesprites(sprite.Sprite):
-    def __init__(self, imga, speed, px, py, x,y, sections):
+    def __init__(self, imga, speed, px, py, x,y, sections, few_sections):
         self.img = transform.scale(image.load(imga), (px, py))
         self.rect = self.img.get_rect()
         self.rect.x = x
+        self.few_sections = few_sections
         self.rect.y = y
         self.velocity = speed
+        self.rot = False
         self.gravity = 3
         self.can_move = True
+        if self.few_sections:
+            self.part_img = transform.scale(image.load(imga), (25, 25))
+            self.part_rect = self.part_img.get_rect()
     def show(self):
         scr.blit(self.img, (self.rect.x, self.rect.y))
+        if self.few_sections:
+            scr.blit(self.part_img, (self.part_rect.x, self.part_rect.y))
 
 
 class block(gamesprites):
     def fall(self):
+        if self.few_sections:
+            if self.rot:
+                self.part_rect.top = self.rect.bottom
+                self.part_rect.right = self.rect.right
+            else:
+                self.part_rect.left = self.rect.right
+                self.part_rect.top = self.rect.top
         if self.can_move:
-            if self.rect.bottomleft[1] < 463:
+            if self.rect.bottom < 463 and self.part_rect.bottom < 463:
                 self.rect.y += self.velocity
             else:
                 self.can_move = False
@@ -70,16 +84,19 @@ class block(gamesprites):
             self.rect.y += (y - self.rect.bottom)
     def get_y(self):
         return self.rect.top
+
 blocks = []
 for j in range(50):
     i = choice(sources)
     if "red" in i:
-        tile = block(i, 4, 25, 25, 350, (j*-500), 1)
+        tile = block(i, 4, 25, 25, 350, (j*-500), 1, False)
+        blocks.append(tile)
     if "blue" in i:
-        tile = block(i, 4, 25, 75, 350, (j*-500), 3)
+        tile = block(i, 4, 25, 75, 350, (j*-500), 3, True)
+        blocks.append(tile)
     if "green" in i:
-        tile = block(i, 4, 25, 50, 350, (j*-500), 4)
-    blocks.append(tile)
+        tile = block(i, 4, 25, 50, 350, (j*-500), 4, False)
+        blocks.append(tile)
 while game:
     rotate = False
     for i in event.get():
@@ -102,6 +119,11 @@ while game:
         i.check_for_keypress()
         if rotate:
             i.rotate1()
+            if i.few_sections:
+                if i.rot:
+                    i.rot = False
+                else:
+                    i.rot = True
         i.show()
         if i.fall():
             fallen.append(i)
@@ -115,14 +137,20 @@ while game:
             i.show()
             for j in blocks:
                 if rect_collide(i, j):
-                    y = i.get_y()
                     if i.rect.top < j.rect.bottom:
                         if j.rect.centerx > i.rect.right:
                             j.rect.left = i.rect.right
                         elif j.rect.centerx < i.rect.left:
                             j.rect.right = i.rect.left
-                    j.ret_y(y)
-                    fallen.append(j)
+                    if j.few_sections:
+                        if j.part_rect.bottom > i.rect.top:
+                            j.part_rect.bottom = i.rect.top
+                            j.rect.bottom = j.part_rect.top
+                        else:
+                            j.rect.bottom = i.rect.top
+                            j.part_rect.left = j.rect.right
+                            j.part_rect.top = j.rect.top
+                        fallen.append(j)
                     blocks.remove(j)
                     j.set_move()
 
