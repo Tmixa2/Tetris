@@ -11,6 +11,8 @@ speed_flag = 0
 global fallen
 fallen = []
 finish = False
+caption = "Tetris"
+display.set_caption(caption)
 global score
 score = 0
 f1 = font.Font(None, 30)
@@ -64,14 +66,6 @@ class block(gamesprites):
         self.rect.y = y
                 
 
-    def increase_speed(self):
-        if self.velocity < 7:
-            if self.rect.y > 0:
-                self.velocity += 3
-    def decrease_speed(self):
-        if self.velocity > 4:
-            self.velocity -= 3
-
 class partial_block():
     def __init__(self, img, speed, px, py, x, y, sections):
         self.img = transform.scale(image.load(img), (px, py))
@@ -115,10 +109,10 @@ class partial_block():
 
     def check_for_keypress(self):
         keys = key.get_pressed()
-        if keys[K_d] and self.rect.bottomleft[0] <= 437:
+        if keys[K_d] and self.rect.bottomleft[0] <= 437 and self.rect2.right <= 437:
             if self.can_move:
                 self.rect.x += 5
-        if keys[K_a] and self.rect.bottomleft[0] >= 240:
+        if keys[K_a] and self.rect.bottomleft[0] >= 240 and self.rect2.right >= 240:
             if self.can_move:
                 self.rect.x -= 5
 
@@ -152,16 +146,16 @@ blocks = []
 for j in range(50):
     i = choice(sources)
     if "red" in i:
-        tile = block(i, 4, 25, 25, 350, (j*-500))
+        tile = block(i, 1.5, 25, 25, 350, (j*-500))
         blocks.append(tile)
     if "blue" in i:
-        tile = partial_block(i, 4, 25, 75, 350, (j*-500), 1)
+        tile = partial_block(i, 1, 25, 75, 350, (j*-500), 1)
         blocks.append(tile)
     if "green" in i:
-        tile = block(i, 4, 25, 50, 350, (j*-500))
+        tile = block(i, 1.5, 25, 50, 350, (j*-500))
         blocks.append(tile)
     if 'orange' in i:
-        tile = partial_block(i, 4, 25, 50, 350, (j*-500), 2)
+        tile = partial_block(i, 1.5, 25, 50, 350, (j*-500), 2)
         blocks.append(tile)
 while game:
     rotate = False
@@ -188,9 +182,11 @@ while game:
             fallen.append(i)
             blocks.remove(i)
         if speed_flag == 1:
-            i.increase_speed()
+            if i.velocity < 4:
+                i.velocity += 3
         if speed_flag == 0:
-            i.decrease_speed()
+            if i.velocity >= 4:
+                i.velocity -= 3
     if len(fallen) > 0:
         for i in fallen:
             if i.rect.y <= 0:
@@ -198,11 +194,11 @@ while game:
             i.show()
             for j in blocks:
                 try:
-                    if (j.rect.right > i.rect.left and j.rect.left < i.rect.right and j.rect.bottom > i.rect.top and j.rect.top < i.rect.bottom) or (j.rect.right > i.rect2.left and j.rect.left < i.rect2.right and j.rect.bottom > i.rect2.top and j.rect.top < i.rect2.bottom) or (j.rect2.right > i.rect2.left and j.rect2.left < i.rect2.right and j.rect2.bottom > i.rect2.top and j.rect2.top < i.rect2.bottom) or (j.rect2.right > i.rect.left and j.rect2.left < i.rect.right and j.rect2.bottom > i.rect.top and j.rect2.top < i.rect.bottom) or (j.rect2.right > i.rect2.left and j.rect2.left < i.rect2.right and j.rect2.bottom > i.rect2.top and j.rect2.top < i.rect2.bottom):
+                    if (j.rect.right > i.rect.left and j.rect.left < i.rect.right and j.rect.bottom > i.rect.top and j.rect.top < i.rect.bottom) or (j.rect.right > i.rect2.left and j.rect.left < i.rect2.right and j.rect.bottom > i.rect2.top and j.rect.top < i.rect.bottom) or (j.rect2.right > i.rect2.left and j.rect2.left < i.rect2.right and j.rect2.bottom > i.rect2.top and j.rect2.top < i.rect2.bottom) or (j.rect2.right > i.rect.left and j.rect2.left < i.rect.right and j.rect2.bottom > i.rect.top and j.rect2.top < i.rect2.bottom) or (j.rect2.right > i.rect2.left and j.rect2.left < i.rect2.right and j.rect2.bottom > i.rect2.top and j.rect2.top < i.rect2.bottom):
                         stop(j, i)
                 except:
                     pass
 
     if not finish:
         display.update()
-        frame.tick(20)
+        frame.tick(40)
